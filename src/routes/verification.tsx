@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Icon } from "@/components/Icon";
 
 export const Route = createFileRoute("/verification")({
@@ -21,18 +21,40 @@ export const Route = createFileRoute("/verification")({
   component: VerificationPage,
 });
 
+const AGENTS = [
+  { icon: "content_cut", title: "Agent Décomposeur", desc: "Identification des claims principaux..." },
+  { icon: "language", title: "Agent Chercheur", desc: "Consultation des archives et presse béninoise..." },
+  { icon: "neurology", title: "Évaluateur Logique", desc: "Détection des biais et sophismes..." },
+  { icon: "balance", title: "Évaluateur Causal", desc: "Analyse des corrélations suspectes..." },
+  { icon: "description", title: "Agent Synthétiseur", desc: "Rédaction du rapport final..." },
+];
+
 function VerificationPage() {
   const [text, setText] = useState("");
   const [loading, setLoading] = useState(false);
+  const [step, setStep] = useState(0);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!loading) return;
+    setStep(0);
+    const interval = setInterval(() => {
+      setStep((s) => s + 1);
+    }, 800);
+    const done = setTimeout(() => {
+      clearInterval(interval);
+      setLoading(false);
+      navigate({ to: "/result" });
+    }, AGENTS.length * 800 + 400);
+    return () => {
+      clearInterval(interval);
+      clearTimeout(done);
+    };
+  }, [loading, navigate]);
 
   const run = () => {
     if (!text.trim()) return;
     setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
-      navigate({ to: "/result" });
-    }, 2200);
   };
 
   return (
@@ -112,6 +134,24 @@ function VerificationPage() {
               <p className="font-body-md text-on-surface-variant">
                 Oluyewo coordonne ses agents spécialisés pour authentifier votre contenu.
               </p>
+            </div>
+
+            <div className="space-y-6">
+              {AGENTS.map((a, i) => (
+                <div
+                  key={a.title}
+                  className="flex items-center gap-4 transition-all duration-500"
+                  style={{ opacity: i <= step ? 1 : 0.2 }}
+                >
+                  <div className="w-10 h-10 rounded-full bg-primary-container flex items-center justify-center text-on-primary flex-shrink-0">
+                    <Icon name={a.icon} className="!text-xl" />
+                  </div>
+                  <div>
+                    <p className="font-label-sm text-on-surface">{a.title}</p>
+                    <p className="text-[12px] text-on-surface-variant">{a.desc}</p>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         </div>

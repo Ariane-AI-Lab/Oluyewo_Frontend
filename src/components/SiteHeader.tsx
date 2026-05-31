@@ -1,7 +1,8 @@
 import { Link, useLocation, useNavigate } from "@tanstack/react-router";
 import { Icon } from "./Icon";
-import { setAuth, useAuth } from "@/lib/auth-store";
+import { useAuth } from "@/lib/auth-store";
 import { useState } from "react";
+import logo from "@/assets/oluyewo-logo.png";
 
 const navLink =
   "font-body-md hover:text-primary transition-colors pb-1 border-b-2 border-transparent text-on-surface-variant";
@@ -21,14 +22,9 @@ export function SiteHeader() {
 
   return (
     <header className="fixed top-0 w-full z-50 backdrop-blur-xl border-b border-outline-variant/30 shadow-sm bg-[color:var(--glass-bg)]">
-      <div className="flex justify-between items-center px-gutter py-4 max-w-[var(--spacing-container-max)] mx-auto">
-        <Link to="/" className="flex items-center gap-2">
-          <div className="flex items-center gap-2">
-            <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center text-on-primary">
-              <Icon name="verified" />
-            </div>
-            <span className="font-display-lg text-headline-md text-primary">Oluyewo</span>
-          </div>
+      <div className="flex justify-between items-center px-gutter py-3 max-w-[var(--spacing-container-max)] mx-auto">
+        <Link to="/" className="flex items-center gap-2" aria-label="Oluyewo">
+          <img src={logo} alt="Oluyewo" className="h-9 w-auto" />
         </Link>
 
         <nav className="hidden md:flex items-center gap-8">
@@ -45,12 +41,9 @@ export function SiteHeader() {
             ))}
           {isLoggedIn ? (
             <button
-              onClick={() => {
-                setAuth(false);
-                navigate({ to: "/" });
-              }}
+              onClick={() => navigate({ to: "/profile" })}
               className="flex items-center justify-center w-10 h-10 rounded-full bg-primary-container/20 text-primary hover:bg-primary hover:text-on-primary transition-all"
-              aria-label="Se déconnecter"
+              aria-label="Mon profil"
             >
               <Icon name="person" />
             </button>
@@ -88,7 +81,15 @@ export function SiteHeader() {
                   {i.label}
                 </Link>
               ))}
-            {!isLoggedIn && (
+            {isLoggedIn ? (
+              <Link
+                to="/profile"
+                onClick={() => setOpen(false)}
+                className="text-on-surface-variant py-2"
+              >
+                Mon profil
+              </Link>
+            ) : (
               <Link
                 to="/login"
                 onClick={() => setOpen(false)}
