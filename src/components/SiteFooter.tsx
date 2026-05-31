@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { Icon } from "./Icon";
 import { useAuth } from "@/lib/auth-store";
+import logo from "@/assets/oluyewo-logo.png";
 
 export function SiteFooter() {
   const isLoggedIn = useAuth();
@@ -8,7 +9,7 @@ export function SiteFooter() {
     <footer className="w-full py-stack-lg bg-surface-container-highest border-t border-outline-variant mt-auto">
       <div className="grid grid-cols-1 md:grid-cols-4 gap-gutter px-gutter max-w-[var(--spacing-container-max)] mx-auto">
         <div className="space-y-4">
-          <h2 className="font-headline-md text-on-surface font-bold">Oluyewo</h2>
+          <img src={logo} alt="Oluyewo" className="h-10 w-auto" />
           <p className="font-body-md text-on-surface-variant">
             La transparence au service du citoyen béninois.
           </p>
