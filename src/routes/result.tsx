@@ -1,4 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useState } from "react";
+import { toast } from "sonner";
 import { Icon } from "@/components/Icon";
 
 export const Route = createFileRoute("/result")({
@@ -19,7 +21,39 @@ export const Route = createFileRoute("/result")({
   component: ResultPage,
 });
 
+const TIMELINE = [
+  {
+    title: "Agent Décomposeur",
+    desc: "A identifié 3 affirmations clés portant sur la date, la durée et l'origine de la source SBEE.",
+  },
+  {
+    title: "Agent Chercheur",
+    desc: "Recherche infructueuse dans la presse locale (La Nation, Banouto) et sur les flux Twitter officiels.",
+  },
+  {
+    title: "Évaluateur Logique",
+    desc: "Absence de ton alarmiste suspect, mais ponctuation excessive détectée.",
+  },
+];
+
 function ResultPage() {
+  const [accordionOpen, setAccordionOpen] = useState(false);
+
+  const summary = `L'information prétendant une coupure nationale d'électricité prévue pour ce weekend est infondée. Après consultation des canaux officiels de la SBEE et des communiqués gouvernementaux, aucune opération de maintenance de cette envergure n'est programmée.`;
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(summary);
+      toast.success("Résumé copié dans le presse-papier");
+    } catch {
+      toast.error("Impossible de copier le résumé");
+    }
+  };
+
+  const handleExport = () => {
+    toast.success("Rapport PDF exporté avec succès");
+  };
+
   return (
     <section className="px-gutter py-stack-lg flex-grow">
       <div className="max-w-3xl mx-auto space-y-6">
@@ -89,11 +123,17 @@ function ResultPage() {
                 Résumé de la vérification
               </h4>
               <div className="flex gap-2">
-                <button className="flex items-center gap-2 px-4 py-2 bg-surface-container-low text-primary-container hover:bg-primary-container/10 border border-primary-container/20 rounded-lg font-label-sm text-xs transition-all active:scale-95">
+                <button
+                  onClick={handleCopy}
+                  className="flex items-center gap-2 px-4 py-2 bg-surface-container-low text-primary-container hover:bg-primary-container/10 border border-primary-container/20 rounded-lg font-label-sm text-xs transition-all active:scale-95"
+                >
                   <Icon name="content_copy" className="!text-lg" />
                   Copier
                 </button>
-                <button className="flex items-center gap-2 px-4 py-2 bg-primary-container text-on-primary hover:opacity-90 rounded-lg font-label-sm text-xs shadow-sm transition-all active:scale-95">
+                <button
+                  onClick={handleExport}
+                  className="flex items-center gap-2 px-4 py-2 bg-primary-container text-on-primary hover:opacity-90 rounded-lg font-label-sm text-xs shadow-sm transition-all active:scale-95"
+                >
                   <Icon name="download" className="!text-lg" />
                   Exporter PDF
                 </button>
@@ -127,6 +167,32 @@ function ResultPage() {
                 </div>
               </div>
             </div>
+          </div>
+
+          <div className="border border-outline-variant/30 rounded-xl overflow-hidden animate-fade-in">
+            <button
+              onClick={() => setAccordionOpen((v) => !v)}
+              className="w-full flex items-center justify-between p-4 bg-surface-container-highest/30 hover:bg-surface-container-highest/50 transition-colors"
+            >
+              <span className="font-label-sm text-on-surface flex items-center gap-2 text-left">
+                <Icon name="search" className="text-primary" />
+                Voir le parcours de réflexion détaillé des agents experts
+              </span>
+              <Icon name={accordionOpen ? "expand_less" : "expand_more"} />
+            </button>
+            {accordionOpen && (
+              <div className="p-6 space-y-6 border-t border-outline-variant/30 bg-surface-container-lowest">
+                <div className="relative pl-8 space-y-8 border-l-2 border-outline-variant/30 ml-4">
+                  {TIMELINE.map((t) => (
+                    <div key={t.title} className="relative">
+                      <div className="absolute -left-[41px] top-0 w-5 h-5 rounded-full bg-primary border-4 border-white shadow-sm" />
+                      <h5 className="font-label-sm">{t.title}</h5>
+                      <p className="text-sm text-on-surface-variant">{t.desc}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
