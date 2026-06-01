@@ -40,10 +40,7 @@ function ExplanationPage() {
         <div className="text-center space-y-4">
           <h1 className="text-3xl md:text-5xl font-bold max-w-3xl mx-auto leading-tight animate-fade-in">
             La vérité à portée de main, <br />
-            <span className="text-primary relative">
-              certifiée par l'IA.
-              <span className="absolute bottom-0 left-0 w-full h-1.5 bg-primary/10 -z-10" />
-            </span>
+            <span className="text-primary">certifiée par l'IA.</span>
           </h1>
           <p className="font-body-md text-on-surface-variant max-w-xl mx-auto animate-fade-in">
             Oluyewo analyse les rumeurs circulant sur WhatsApp et les réseaux sociaux au Bénin
@@ -51,7 +48,7 @@ function ExplanationPage() {
           </p>
         </div>
 
-        <div className="space-y-16">
+        <div className="max-w-5xl mx-auto space-y-16">
           {/* Step 1 */}
           <div className="flex flex-col md:flex-row items-center gap-8 md:gap-16">
             <div className="md:w-1/2 space-y-4">
