@@ -48,7 +48,7 @@ function ExplanationPage() {
           </p>
         </div>
 
-        <div className="max-w-5xl mx-auto space-y-16">
+        <div className="max-w-4xl mx-auto space-y-16">
           {/* Step 1 */}
           <div className="flex flex-col md:flex-row items-center gap-8 md:gap-16">
             <div className="md:w-1/2 space-y-4">
