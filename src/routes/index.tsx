@@ -148,13 +148,6 @@ function ExplanationPage() {
                 Recevez une réponse sans ambiguïté : Vrai, Faux, ou Neutre. Chaque verdict est
                 accompagné de preuves tangibles et de liens vers les sources officielles.
               </p>
-              <Link
-                to="/verification"
-                className="premium-button font-label-sm text-base px-8 py-3 rounded-full inline-flex items-center gap-2 active:scale-95 transition-all"
-              >
-                Commencer maintenant
-                <Icon name="bolt" className="!text-base" />
-              </Link>
             </div>
             <div className="md:w-1/2">
               <div className="relative p-2 bg-white rounded-2xl mockup-shadow transform md:rotate-1 hover:rotate-0 transition-transform duration-500">
