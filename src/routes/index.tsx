@@ -111,7 +111,7 @@ function ExplanationPage() {
                 </div>
               </div>
             </div>
-            <div className="md:w-1/2">
+            <div className="md:w-1/2 hidden md:block">
               <div className="relative p-2 bg-white rounded-2xl mockup-shadow transform md:-rotate-2 hover:rotate-0 transition-transform duration-500">
                 <div className="bg-primary/5 rounded-xl p-6 min-h-[180px]">
                   <div className="space-y-3">
