@@ -1,7 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Icon } from "@/components/Icon";
+import type { VerificationResult } from "@/lib/types";
 
 export const Route = createFileRoute("/result")({
   head: () => ({
@@ -21,25 +22,42 @@ export const Route = createFileRoute("/result")({
   component: ResultPage,
 });
 
-const TIMELINE = [
-  {
-    title: "Agent Décomposeur",
-    desc: "A identifié 3 affirmations clés portant sur la date, la durée et l'origine de la source SBEE.",
-  },
-  {
-    title: "Agent Chercheur",
-    desc: "Recherche infructueuse dans la presse locale (La Nation, Banouto) et sur les flux Twitter officiels.",
-  },
-  {
-    title: "Évaluateur Logique",
-    desc: "Absence de ton alarmiste suspect, mais ponctuation excessive détectée.",
-  },
-];
+const STORAGE_KEY = "oluyewo_last_result";
 
 function ResultPage() {
   const [accordionOpen, setAccordionOpen] = useState(false);
+  const [result, setResult] = useState<VerificationResult | null>(null);
 
-  const summary = `L'information prétendant une coupure nationale d'électricité prévue pour ce weekend est infondée. Après consultation des canaux officiels de la SBEE et des communiqués gouvernementaux, aucune opération de maintenance de cette envergure n'est programmée.`;
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const raw = window.localStorage.getItem(STORAGE_KEY);
+    if (!raw) return;
+
+    try {
+      setResult(JSON.parse(raw) as VerificationResult);
+    } catch {
+      setResult(null);
+    }
+  }, []);
+
+  const verdict = useMemo(() => {
+    const status = result?.statut?.trim();
+    return status ? status.toUpperCase() : "NON DISPONIBLE";
+  }, [result]);
+
+  const confidence = useMemo(() => {
+    if (typeof result?.score_certitude === "number" && Number.isFinite(result.score_certitude)) {
+      return Math.round(result.score_certitude * 100);
+    }
+    return 0;
+  }, [result]);
+
+  const summary = useMemo(() => {
+    return result?.analyse_narrative || "Le backend n’a pas encore fourni de résumé détaillé pour cette vérification.";
+  }, [result]);
+
+  const isFalseish = verdict.toLowerCase().includes("faux") || verdict.toLowerCase().includes("false") || verdict.toLowerCase().includes("non");
 
   const handleCopy = async () => {
     try {
@@ -51,7 +69,8 @@ function ResultPage() {
   };
 
   const handleExport = () => {
-    toast.success("Rapport PDF exporté avec succès");
+    if (!result) return;
+    window.print();
   };
 
   return (
@@ -70,12 +89,18 @@ function ResultPage() {
             <div className="space-y-1">
               <h2 className="font-headline-md text-on-surface">Verdict Final</h2>
               <p className="text-on-surface-variant font-body-md text-sm">
-                Analyse complétée le 24 Mai 2026
+                Analyse complétée le {new Date().toLocaleDateString("fr-FR")}
               </p>
             </div>
-            <div className="inline-flex items-center gap-3 bg-error-container/40 text-error px-5 py-2 rounded-xl border border-error/20">
-              <Icon name="dangerous" className="!text-2xl font-bold" />
-              <span className="font-headline-md">FAUX</span>
+            <div
+              className={
+                isFalseish
+                  ? "inline-flex items-center gap-3 bg-error-container/40 text-error px-5 py-2 rounded-xl border border-error/20"
+                  : "inline-flex items-center gap-3 bg-primary-container/20 text-primary px-5 py-2 rounded-xl border border-primary/20"
+              }
+            >
+              <Icon name={isFalseish ? "dangerous" : "task_alt"} className="!text-2xl font-bold" />
+              <span className="font-headline-md">{verdict}</span>
             </div>
           </div>
 
@@ -104,7 +129,7 @@ function ResultPage() {
                 />
               </svg>
               <div className="absolute inset-0 flex items-center justify-center font-bold text-sm">
-                85%
+                {confidence}%
               </div>
             </div>
             <div className="space-y-0.5">
@@ -140,30 +165,30 @@ function ResultPage() {
               </div>
             </div>
             <div className="bg-primary-container/5 p-6 rounded-xl space-y-4">
-              <p className="font-body-md text-on-surface leading-relaxed">
-                L'information prétendant une coupure nationale d'électricité prévue pour ce weekend
-                est <strong>infondée</strong>. Après consultation des canaux officiels de la SBEE
-                et des communiqués gouvernementaux, aucune opération de maintenance de cette
-                envergure n'est programmée. Le texte présente les caractéristiques typiques d'un
-                "copier-coller" viral sans source identifiable.
-              </p>
+              <p className="font-body-md text-on-surface leading-relaxed">{summary}</p>
               <div className="space-y-2">
                 <p className="font-label-sm text-on-surface-variant uppercase text-xs">
                   Sources vérifiées :
                 </p>
                 <div className="flex flex-wrap gap-2">
-                  <a
-                    href="#"
-                    className="text-primary hover:underline text-[12px] inline-flex items-center gap-1 bg-white px-3 py-1 rounded-full border border-outline-variant"
-                  >
-                    <Icon name="link" className="!text-sm" /> Site officiel de la SBEE
-                  </a>
-                  <a
-                    href="#"
-                    className="text-primary hover:underline text-[12px] inline-flex items-center gap-1 bg-white px-3 py-1 rounded-full border border-outline-variant"
-                  >
-                    <Icon name="link" className="!text-sm" /> Portail Gouv.bj
-                  </a>
+                  {result?.sources?.length ? (
+                    result.sources.map((source) => (
+                      <a
+                        key={source.url}
+                        href={source.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-[12px] inline-flex items-center gap-1 bg-white px-3 py-1 rounded-full border border-outline-variant hover:border-primary hover:text-primary transition-colors"
+                      >
+                        <Icon name="link" className="!text-sm" />
+                        {source.titre?.slice(0, 40) || source.url?.slice(0, 40)}...
+                      </a>
+                    ))
+                  ) : (
+                    <span className="text-[12px] inline-flex items-center gap-1 bg-white px-3 py-1 rounded-full border border-outline-variant">
+                      <Icon name="info" className="!text-sm" /> Aucune source externe collectée
+                    </span>
+                  )}
                 </div>
               </div>
             </div>
@@ -183,13 +208,98 @@ function ResultPage() {
             {accordionOpen && (
               <div className="p-6 space-y-6 border-t border-outline-variant/30 bg-surface-container-lowest">
                 <div className="relative pl-8 space-y-8 border-l-2 border-outline-variant/30 ml-4">
-                  {TIMELINE.map((t) => (
-                    <div key={t.title} className="relative">
-                      <div className="absolute -left-[41px] top-0 w-5 h-5 rounded-full bg-primary border-4 border-white shadow-sm" />
-                      <h5 className="font-label-sm">{t.title}</h5>
-                      <p className="text-sm text-on-surface-variant">{t.desc}</p>
+
+                  {/* Temps d'exécution */}
+                  <div className="relative">
+                    <div className="absolute -left-[41px] top-0 w-5 h-5 rounded-full bg-primary border-4 border-white shadow-sm" />
+                    <h5 className="font-label-sm">Temps d'exécution</h5>
+                    <p className="text-sm text-on-surface-variant">
+                      Analyse complétée en {result?.performance?.latence_totale_secondes ?? "—"} secondes • {result?.performance?.total_appels_api ?? "—"} appels API effectués
+                    </p>
+                  </div>
+
+                  {/* Journal dynamique des agents */}
+                  {result?.journal_agents?.map((entry, index) => {
+                    if (entry.agent === "agent_verificateur_principal") {
+                      const isFirst = index === 0;
+                      const scorePercent = Math.round((entry.score_confiance ?? 0) * 100);
+                      const scoreColor = scorePercent >= 85 ? "text-primary" : "text-amber-600";
+                      return (
+                        <div key={index} className="relative">
+                          <div className="absolute -left-[41px] top-0 w-5 h-5 rounded-full bg-primary border-4 border-white shadow-sm" />
+                          <div className="flex items-start gap-3">
+                            <div className="w-8 h-8 rounded-full bg-primary-container/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+                              <Icon name="manage_search" className="!text-sm text-primary-container" />
+                            </div>
+                            <div className="space-y-1">
+                              <h5 className="font-label-sm">
+                                Agent Vérificateur Principal
+                                {!isFirst && ` (passage ${entry.iteration + 1})`}
+                              </h5>
+                              <p className="text-sm text-on-surface-variant">
+                                {isFirst
+                                  ? "Analyse de l'image via recherche inversée Google Lens et évaluation du texte."
+                                  : "Réévaluation du score de confiance après collecte de nouvelles preuves."}
+                              </p>
+                              <p className={`text-sm font-medium ${scoreColor}`}>
+                                Score de confiance : {scorePercent}%
+                                {scorePercent >= 85
+                                  ? " → Confiance suffisante, direction la synthèse."
+                                  : entry.iteration >= 2
+                                  ? " → Garde-fou activé (3 itérations atteintes)."
+                                  : " → Confiance insuffisante, lancement des recherches."}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    }
+
+                    if (entry.agent === "agent_chercheur_web") {
+                      return (
+                        <div key={index} className="relative">
+                          <div className="absolute -left-[41px] top-0 w-5 h-5 rounded-full bg-primary border-4 border-white shadow-sm" />
+                          <div className="flex items-start gap-3">
+                            <div className="w-8 h-8 rounded-full bg-primary-container/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+                              <Icon name="language" className="!text-sm text-primary-container" />
+                            </div>
+                            <div className="space-y-2">
+                              <h5 className="font-label-sm">
+                                Agent Chercheur Web (itération {entry.iteration + 1})
+                              </h5>
+                              <div className="space-y-1">
+                                {entry.questions?.map((q: string, qi: number) => (
+                                  <p key={qi} className="text-sm text-on-surface-variant flex items-start gap-1">
+                                    <Icon name="search" className="!text-sm mt-0.5 flex-shrink-0" />
+                                    {q}
+                                  </p>
+                                ))}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    }
+
+                    return null;
+                  })}
+
+                  {/* Synthétiseur — toujours en dernier */}
+                  <div className="relative">
+                    <div className="absolute -left-[41px] top-0 w-5 h-5 rounded-full bg-primary border-4 border-white shadow-sm" />
+                    <div className="flex items-start gap-3">
+                      <div className="w-8 h-8 rounded-full bg-primary-container/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <Icon name="description" className="!text-sm text-primary-container" />
+                      </div>
+                      <div>
+                        <h5 className="font-label-sm">Agent Synthétiseur</h5>
+                        <p className="text-sm text-on-surface-variant">
+                          Rédaction du rapport final — verdict : <strong>{result?.statut}</strong> avec un indice de confiance de {confidence}%.
+                        </p>
+                      </div>
                     </div>
-                  ))}
+                  </div>
+
                 </div>
               </div>
             )}

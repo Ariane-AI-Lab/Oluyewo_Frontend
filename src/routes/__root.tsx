@@ -14,6 +14,7 @@ import { reportLovableError } from "../lib/lovable-error-reporting";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import { Toaster } from "@/components/ui/sonner";
+import { clearAppStatus, getAppStatus, useAppStatus } from "@/lib/app-state";
 
 function NotFoundComponent() {
   return (
@@ -128,12 +129,34 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const status = useAppStatus();
+
+  useEffect(() => {
+    if (!status.error && !status.message) return;
+    const timer = window.setTimeout(() => clearAppStatus(), 4000);
+    return () => window.clearTimeout(timer);
+  }, [status.error, status.message]);
 
   return (
     <QueryClientProvider client={queryClient}>
       <div className="min-h-screen flex flex-col bg-surface">
         <SiteHeader />
         <main className="pt-20 flex-grow flex flex-col">
+          {status.loading ? (
+            <div className="mx-auto my-8 rounded-full border border-primary/20 bg-white px-4 py-2 text-sm text-on-surface-variant shadow-sm">
+              Chargement en cours…
+            </div>
+          ) : null}
+          {status.error ? (
+            <div className="mx-auto my-4 max-w-2xl rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 shadow-sm">
+              {status.error}
+            </div>
+          ) : null}
+          {status.message ? (
+            <div className="mx-auto my-4 max-w-2xl rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700 shadow-sm">
+              {status.message}
+            </div>
+          ) : null}
           <Outlet />
         </main>
         <SiteFooter />

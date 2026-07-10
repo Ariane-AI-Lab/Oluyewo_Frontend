@@ -1,6 +1,8 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { setAuth } from "@/lib/auth-store";
+import { apiRequest } from "@/lib/api";
+import { clearAppStatus, setAppStatus } from "@/lib/app-state";
 
 export const Route = createFileRoute("/login")({
   head: () => ({
@@ -18,11 +20,39 @@ function LoginPage() {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const submit = (e: React.FormEvent) => {
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setAuth(true);
-    navigate({ to: "/" });
+    setError("");
+    setIsSubmitting(true);
+    setAppStatus({ loading: true, error: null, message: "Connexion en cours…" });
+
+    try {
+      const payload = await apiRequest<{ access_token?: string; token_type?: string; message?: string }>(
+        "/auth/login",
+        {
+          method: "POST",
+          body: JSON.stringify({ email, password }),
+        },
+      );
+
+      if (!payload.access_token) {
+        throw new Error(payload.message || "La connexion a échoué.");
+      }
+
+      setAuth(true, payload.access_token);
+      clearAppStatus();
+      navigate({ to: "/" });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Impossible de se connecter au serveur.";
+      setError(message);
+      setAppStatus({ loading: false, error: message, message: null });
+    } finally {
+      setIsSubmitting(false);
+      setAppStatus({ loading: false, error: null, message: null });
+    }
   };
 
   return (
@@ -58,8 +88,9 @@ function LoginPage() {
               className="w-full bg-surface-container-low border border-outline-variant/30 rounded-xl p-3 focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
             />
           </div>
-          <button type="submit" className="w-full premium-button py-4 rounded-xl font-bold">
-            Se connecter
+          {error ? <p className="text-sm text-red-600">{error}</p> : null}
+          <button type="submit" className="w-full premium-button py-4 rounded-xl font-bold" disabled={isSubmitting}>
+            {isSubmitting ? "Connexion…" : "Se connecter"}
           </button>
           <p className="text-center text-sm text-on-surface-variant">
             Pas de compte ?{" "}

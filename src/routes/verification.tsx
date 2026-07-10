@@ -1,6 +1,9 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Icon } from "@/components/Icon";
+import { apiRequest } from "@/lib/api";
+import { setAppStatus } from "@/lib/app-state";
+import type { VerificationResult } from "@/lib/types";
 
 export const Route = createFileRoute("/verification")({
   head: () => ({
@@ -22,10 +25,8 @@ export const Route = createFileRoute("/verification")({
 });
 
 const AGENTS = [
-  { icon: "content_cut", title: "Agent Décomposeur", desc: "Identification des claims principaux..." },
-  { icon: "language", title: "Agent Chercheur", desc: "Consultation des archives et presse béninoise..." },
-  { icon: "neurology", title: "Évaluateur Logique", desc: "Détection des biais et sophismes..." },
-  { icon: "balance", title: "Évaluateur Causal", desc: "Analyse des corrélations suspectes..." },
+  { icon: "manage_search", title: "Agent Vérificateur Principal", desc: "Analyse de la rumeur en cours..." },
+  { icon: "language", title: "Agent Chercheur Web", desc: "Recherche de preuves sur le web..." },
   { icon: "description", title: "Agent Synthétiseur", desc: "Rédaction du rapport final..." },
 ];
 
@@ -33,6 +34,7 @@ function VerificationPage() {
   const [text, setText] = useState("");
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState(0);
+  const [error, setError] = useState("");
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -41,20 +43,35 @@ function VerificationPage() {
     const interval = setInterval(() => {
       setStep((s) => s + 1);
     }, 800);
-    const done = setTimeout(() => {
-      clearInterval(interval);
-      setLoading(false);
-      navigate({ to: "/result" });
-    }, AGENTS.length * 800 + 400);
     return () => {
       clearInterval(interval);
-      clearTimeout(done);
     };
-  }, [loading, navigate]);
+  }, [loading]);
 
-  const run = () => {
+  const run = async () => {
     if (!text.trim()) return;
+    setError("");
     setLoading(true);
+    setAppStatus({ loading: true, error: null, message: "Analyse en cours…" });
+
+    try {
+      const formData = new FormData();
+      formData.append("rumor_text", text.trim());
+
+      const result = await apiRequest<VerificationResult>("/verify-rumor", {
+        method: "POST",
+        body: formData,
+      });
+
+      window.localStorage.setItem("oluyewo_last_result", JSON.stringify(result));
+      setAppStatus({ loading: false, error: null, message: "Analyse terminée." });
+      navigate({ to: "/result" });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Impossible de vérifier ce contenu.";
+      setError(message);
+      setLoading(false);
+      setAppStatus({ loading: false, error: message, message: null });
+    }
   };
 
   return (
@@ -107,12 +124,13 @@ function VerificationPage() {
                 </div>
               </div>
 
+              {error ? <p className="text-sm text-red-600">{error}</p> : null}
               <button
-                disabled={!text.trim()}
+                disabled={!text.trim() || loading}
                 onClick={run}
                 className="w-full premium-button font-label-sm text-lg py-5 rounded-xl flex justify-center items-center gap-3 active:scale-95 transition-all"
               >
-                Lancer l'analyse
+                {loading ? "Analyse en cours…" : "Lancer l'analyse"}
               </button>
             </div>
           </div>
