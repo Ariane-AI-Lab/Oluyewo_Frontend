@@ -57,7 +57,15 @@ function ResultPage() {
     return result?.analyse_narrative || "Le backend n’a pas encore fourni de résumé détaillé pour cette vérification.";
   }, [result]);
 
-  const isFalseish = verdict.toLowerCase().includes("faux") || verdict.toLowerCase().includes("false") || verdict.toLowerCase().includes("non");
+  const normalizedVerdict = verdict.toLowerCase();
+  const isFalseish =
+    normalizedVerdict.includes("faux") ||
+    normalizedVerdict.includes("false") ||
+    normalizedVerdict.includes("non") ||
+    normalizedVerdict.includes("détourn") ||
+    normalizedVerdict.includes("detourn") ||
+    normalizedVerdict.includes("erron") ||
+    normalizedVerdict.includes("fals");
 
   const handleCopy = async () => {
     try {

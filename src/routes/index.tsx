@@ -43,8 +43,7 @@ function ExplanationPage() {
             <span className="text-primary">certifiée par l'IA.</span>
           </h1>
           <p className="font-body-md text-on-surface-variant max-w-xl mx-auto animate-fade-in">
-            Oluyewo analyse les rumeurs circulant sur WhatsApp et les réseaux sociaux au Bénin
-            pour vous offrir une clarté instantanée.
+            Oluyewo évalue la véracité des informations pour vous offrir une analyse claire, transparente et instantanée.
           </p>
         </div>
 
@@ -55,13 +54,11 @@ function ExplanationPage() {
               <Pill>Étape 01</Pill>
               <h2 className="text-2xl md:text-3xl font-bold">Déposez votre alerte</h2>
               <p className="font-body-md text-on-surface-variant">
-                Collez un texte WhatsApp, transférez un audio ou glissez une image suspecte. Notre
-                interface intuitive s'adapte à tous vos formats de contenu pour une analyse
-                immédiate.
+                Déposez une affirmation textuelle et/ou glissez une image suspecte pour une analyse immédiate.
               </p>
               <ul className="space-y-2">
                 <li className="flex items-center gap-2 font-body-md text-sm">
-                  <Icon name="check_circle" className="text-primary !text-base" /> Supporte les captures WhatsApp
+                  <Icon name="check_circle" className="text-primary !text-base" /> Supporte les captures d'écran 
                 </li>
                 <li className="flex items-center gap-2 font-body-md text-sm">
                   <Icon name="check_circle" className="text-primary !text-base" /> Glisser-déposer ultra-rapide
@@ -97,8 +94,7 @@ function ExplanationPage() {
               <Pill>Étape 02</Pill>
               <h2 className="text-2xl md:text-3xl font-bold">Enquête en direct</h2>
               <p className="font-body-md text-on-surface-variant">
-                Nos agents IA parcourent le web, les rapports d'ONG et les sources officielles
-                béninoises pour recouper les faits en quelques secondes.
+                Nos agents IA parcourent le web et les sources officielles pour recouper les faits en quelques secondes.
               </p>
               <div className="grid grid-cols-2 gap-3">
                 <div className="p-3 bg-white rounded-lg border border-primary/10">
@@ -106,7 +102,7 @@ function ExplanationPage() {
                   <p className="text-[11px] text-on-surface-variant">Sources scannées</p>
                 </div>
                 <div className="p-3 bg-white rounded-lg border border-primary/10">
-                  <p className="text-primary font-bold text-lg">&lt; 30s</p>
+                  <p className="text-primary font-bold text-lg">&lt; 60s</p>
                   <p className="text-[11px] text-on-surface-variant">Temps d'analyse</p>
                 </div>
               </div>
@@ -145,7 +141,7 @@ function ExplanationPage() {
               <Pill>Étape 03</Pill>
               <h2 className="text-2xl md:text-3xl font-bold">Le Verdict Clair</h2>
               <p className="font-body-md text-on-surface-variant">
-                Recevez une réponse sans ambiguïté : Vrai, Faux, ou Neutre. Chaque verdict est
+                Recevez une réponse sans ambiguïté : Vrai, Faux, Contexte détourné ou Invér. Chaque verdict est
                 accompagné de preuves tangibles et de liens vers les sources officielles.
               </p>
             </div>

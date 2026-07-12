@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ChangeEvent } from "react";
 import { Icon } from "@/components/Icon";
 import { apiRequest } from "@/lib/api";
 import { setAppStatus } from "@/lib/app-state";
@@ -32,6 +32,7 @@ const AGENTS = [
 
 function VerificationPage() {
   const [text, setText] = useState("");
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState(0);
   const [error, setError] = useState("");
@@ -48,15 +49,25 @@ function VerificationPage() {
     };
   }, [loading]);
 
+  const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0] ?? null;
+    setSelectedFile(file);
+  };
+
+  const canSubmit = Boolean(text.trim() || selectedFile);
+
   const run = async () => {
-    if (!text.trim()) return;
+    if (!canSubmit) return;
     setError("");
     setLoading(true);
     setAppStatus({ loading: true, error: null, message: "Analyse en cours…" });
 
     try {
       const formData = new FormData();
-      formData.append("rumor_text", text.trim());
+      formData.append("rumor_text", text.trim() || selectedFile?.name || "Image téléchargée");
+      if (selectedFile) {
+        formData.append("image_file", selectedFile);
+      }
 
       const result = await apiRequest<VerificationResult>("/verify-rumor", {
         method: "POST",
@@ -111,7 +122,8 @@ function VerificationPage() {
                 <label className="font-label-sm text-on-surface-variant">
                   Image ou document (Optionnel)
                 </label>
-                <div className="border-2 border-dashed border-outline-variant/50 bg-surface-container-low/50 rounded-xl p-10 text-center space-y-4 hover:border-primary-container hover:bg-emerald-glow transition-all cursor-pointer group">
+                <label className="block border-2 border-dashed border-outline-variant/50 bg-surface-container-low/50 rounded-xl p-10 text-center space-y-4 hover:border-primary-container hover:bg-emerald-glow transition-all cursor-pointer group">
+                  <input type="file" accept="image/*,.pdf" className="sr-only" onChange={handleFileChange} />
                   <Icon
                     name="cloud_upload"
                     className="!text-4xl text-on-surface-variant group-hover:text-primary-container transition-colors"
@@ -121,12 +133,18 @@ function VerificationPage() {
                     <span className="text-primary font-bold">parcourez vos fichiers</span>
                   </p>
                   <p className="font-label-sm text-outline">PNG, JPG ou PDF jusqu'à 10MB</p>
-                </div>
+                  {selectedFile ? (
+                    <div className="mt-4 inline-flex items-center gap-2 rounded-full border border-primary-container/40 bg-primary-container/10 px-4 py-2 text-sm font-medium text-primary shadow-sm">
+                      <Icon name="check_circle" className="!text-base" />
+                      <span>{selectedFile.name}</span>
+                    </div>
+                  ) : null}
+                </label>
               </div>
 
               {error ? <p className="text-sm text-red-600">{error}</p> : null}
               <button
-                disabled={!text.trim() || loading}
+                disabled={!canSubmit || loading}
                 onClick={run}
                 className="w-full premium-button font-label-sm text-lg py-5 rounded-xl flex justify-center items-center gap-3 active:scale-95 transition-all"
               >
